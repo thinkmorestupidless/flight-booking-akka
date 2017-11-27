@@ -6,6 +6,7 @@ import lombok.Value;
 
 import java.io.Serializable;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface FlightEvent extends Serializable {
 
@@ -13,7 +14,7 @@ public interface FlightEvent extends Serializable {
     @JsonDeserialize
     final class FlightAdded implements FlightEvent {
 
-        public final String flightId;
+        public final UUID flightId;
 
         public final String callsign;
 
@@ -24,7 +25,7 @@ public interface FlightEvent extends Serializable {
         public final String arrivalIata;
 
         @JsonCreator
-        public FlightAdded(String flightId, String callsign, String equipment, String departureIata, String arrivalIata) {
+        public FlightAdded(UUID flightId, String callsign, String equipment, String departureIata, String arrivalIata) {
             this.flightId = flightId;
             this.callsign = callsign;
             this.equipment = equipment;
@@ -37,7 +38,7 @@ public interface FlightEvent extends Serializable {
     @JsonDeserialize
     final class PassengerAdded implements FlightEvent {
 
-        public final String flightId;
+        public final UUID flightId;
 
         public final String passengerId;
 
@@ -50,7 +51,7 @@ public interface FlightEvent extends Serializable {
         public final Optional<String> seatAssignment;
 
         @JsonCreator
-        public PassengerAdded(String flightId, String passengerId, String lastName, String firstName, String initial, Optional<String> seatAssignment) {
+        public PassengerAdded(UUID flightId, String passengerId, String lastName, String firstName, String initial, Optional<String> seatAssignment) {
             this.flightId = flightId;
             this.passengerId = passengerId;
             this.lastName = lastName;
@@ -64,14 +65,14 @@ public interface FlightEvent extends Serializable {
     @JsonDeserialize
     final class SeatSelected implements FlightEvent {
 
-        public final String flightId;
+        public final UUID flightId;
 
         public final String passengerId;
 
         public final String seatAssignment;
 
         @JsonCreator
-        public SeatSelected(String flightId, String passengerId, String seatAssignment) {
+        public SeatSelected(UUID flightId, String passengerId, String seatAssignment) {
             this.flightId = flightId;
             this.passengerId = passengerId;
             this.seatAssignment = seatAssignment;
@@ -82,12 +83,12 @@ public interface FlightEvent extends Serializable {
     @JsonDeserialize
     final class PassengerRemoved implements FlightEvent {
 
-        public final String flightId;
+        public final UUID flightId;
 
         public final String passengerId;
 
         @JsonCreator
-        public PassengerRemoved(String flightId, String passengerId) {
+        public PassengerRemoved(UUID flightId, String passengerId) {
             this.flightId = flightId;
             this.passengerId = passengerId;
         }
@@ -97,10 +98,10 @@ public interface FlightEvent extends Serializable {
     @JsonDeserialize
     final class FlightClosed implements FlightEvent {
 
-        public final String flightId;
+        public final UUID flightId;
 
         @JsonCreator
-        public FlightClosed(String flightId) {
+        public FlightClosed(UUID flightId) {
             this.flightId = flightId;
         }
     }

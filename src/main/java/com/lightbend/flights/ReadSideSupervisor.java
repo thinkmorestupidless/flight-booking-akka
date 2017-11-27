@@ -68,7 +68,7 @@ public class ReadSideSupervisor extends AbstractActorWithStash {
     public void prepareTables() {
 
         session.execute("CREATE TABLE IF NOT EXISTS flights.flights (" +
-                                "flightId text, " +
+                                "flightId UUID, " +
                                 "callsign text, " +
                                 "equipment text, " +
                                 "departureIata text, " +

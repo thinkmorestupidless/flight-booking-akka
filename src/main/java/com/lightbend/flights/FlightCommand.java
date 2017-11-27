@@ -7,16 +7,15 @@ import lombok.Value;
 
 import java.io.Serializable;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface FlightCommand extends Serializable {
 
-    String getFlightId();
+    UUID getFlightId();
 
     @Value
     @JsonDeserialize
-    final class AddFlight implements FlightCommand {
-
-        public final String flightId;
+    final class AddFlight implements Serializable {
 
         public final String callsign;
 
@@ -27,12 +26,10 @@ public interface FlightCommand extends Serializable {
         public final String arrivalIata;
 
         @JsonCreator
-        public AddFlight(@JsonProperty("flightId") String flightId,
-                         @JsonProperty("callsign") String callsign,
+        public AddFlight(@JsonProperty("callsign") String callsign,
                          @JsonProperty("equipment") String equipment,
                          @JsonProperty("departureIata") String departureIata,
                          @JsonProperty("arrivalIata") String arrivalIata) {
-            this.flightId = flightId;
             this.callsign = callsign;
             this.equipment = equipment;
             this.departureIata = departureIata;
@@ -44,7 +41,7 @@ public interface FlightCommand extends Serializable {
     @JsonDeserialize
     final class AddPassenger implements FlightCommand {
 
-        public final String flightId;
+        public final UUID flightId;
 
         public final String passengerId;
 
@@ -57,7 +54,12 @@ public interface FlightCommand extends Serializable {
         public final Optional<String> seatAssignment;
 
         @JsonCreator
-        public AddPassenger(String flightId, String passengerId, String lastName, String firstName, String initial, Optional<String> seatAssignment) {
+        public AddPassenger(@JsonProperty("flightId") UUID flightId,
+                            @JsonProperty("passengerId") String passengerId,
+                            @JsonProperty("lastName") String lastName,
+                            @JsonProperty("firstName") String firstName,
+                            @JsonProperty("initial") String initial,
+                            @JsonProperty("seatAssignment") Optional<String> seatAssignment) {
             this.flightId = flightId;
             this.passengerId = passengerId;
             this.lastName = lastName;
@@ -71,14 +73,16 @@ public interface FlightCommand extends Serializable {
     @JsonDeserialize
     final class SelectSeat implements FlightCommand {
 
-        public final String flightId;
+        public final UUID flightId;
 
         public final String passengerId;
 
         public final String seatAssignment;
 
         @JsonCreator
-        public SelectSeat(String flightId, String passengerId, String seatAssignment) {
+        public SelectSeat(@JsonProperty("flightId") UUID flightId,
+                          @JsonProperty("passengerId") String passengerId,
+                          @JsonProperty("seatAssignment") String seatAssignment) {
             this.flightId = flightId;
             this.passengerId = passengerId;
             this.seatAssignment = seatAssignment;
@@ -89,12 +93,13 @@ public interface FlightCommand extends Serializable {
     @JsonDeserialize
     final class RemovePassenger implements FlightCommand {
 
-        public final String flightId;
+        public final UUID flightId;
 
         public final String passengerId;
 
         @JsonCreator
-        public RemovePassenger(String flightId, String passengerId) {
+        public RemovePassenger(@JsonProperty("flightId") UUID flightId,
+                               @JsonProperty("passengerId") String passengerId) {
             this.flightId = flightId;
             this.passengerId = passengerId;
         }
@@ -104,10 +109,10 @@ public interface FlightCommand extends Serializable {
     @JsonDeserialize
     final class CloseFlight implements FlightCommand {
 
-        public final String flightId;
+        public final UUID flightId;
 
         @JsonCreator
-        public CloseFlight(String flightId) {
+        public CloseFlight(@JsonProperty("flightId") UUID flightId) {
             this.flightId = flightId;
         }
     }

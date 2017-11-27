@@ -20,10 +20,7 @@ public class TaggingEventAdapter implements WriteEventAdapter {
     @Override
     public Object toJournal(Object event) {
 
-        log.info("do i tag {}?", event);
-
         if (event instanceof FlightEvent) {
-            log.info("yes");
             Set<String> tags = Sets.newHashSet();
             tags.add("flight");
 

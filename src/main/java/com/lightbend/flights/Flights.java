@@ -11,6 +11,8 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.Option;
 
+import java.util.UUID;
+
 public class Flights extends AbstractActor {
 
     public static Props props() {
@@ -26,10 +28,12 @@ public class Flights extends AbstractActor {
         @Override
         public String entityId(Object message) {
 
-             System.out.println("getting entity id for " + message);
-
             if (message instanceof FlightCommand) {
-                return String.format("flight-%s", ((FlightCommand) message).getFlightId());
+                return ((FlightCommand) message).getFlightId().toString();
+            }
+
+            if (message instanceof FlightCommand.AddFlight) {
+                return UUID.randomUUID().toString();
             }
 
             throw new RuntimeException("expecting message of type 'FlightCommand' but was " + message.getClass().getName());
@@ -52,10 +56,8 @@ public class Flights extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(FlightCommand.class, cmd -> {
-                    log.info("and here i am");
-                    shards.forward(cmd, getContext());
-                })
+                .match(FlightCommand.class, cmd -> shards.forward(cmd, getContext()))
+                .match(FlightCommand.AddFlight.class, cmd -> shards.forward(cmd, getContext()))
                 .matchAny(o -> log.warning("i don't know what to do with {}", o))
                 .build();
     }

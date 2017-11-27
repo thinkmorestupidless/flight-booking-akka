@@ -8,11 +8,11 @@ public class JacksonTest {
 
     @Test
     public void testUnmarshal() throws Exception {
-        FlightCommand addFlight = new FlightCommand.AddFlight("a", "b", "c", "d", "e");
+        FlightCommand.AddFlight addFlight = new FlightCommand.AddFlight("a", "b", "c", "d");
         ObjectMapper mapper = new ObjectMapper();
 
         String s = mapper.writeValueAsString(addFlight);
 
-        FlightCommand f = mapper.readValue(s, FlightCommand.AddFlight.class);
+        FlightCommand.AddFlight f = mapper.readValue(s, FlightCommand.AddFlight.class);
     }
 }

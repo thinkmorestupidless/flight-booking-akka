@@ -4,11 +4,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Value;
 
+import java.util.UUID;
+
 @Value
 @JsonDeserialize
 public class FlightInfo {
 
-    public final String flightId;
+    public final UUID flightId;
     public final String callsign;
     public final String equipment;
     public final String departureIata;
@@ -16,7 +18,7 @@ public class FlightInfo {
     public final Boolean doorsClosed;
 
     @JsonCreator
-    public FlightInfo(String flightId, String callsign, String equipment, String departureIata, String arrivalIata, Boolean doorsClosed) {
+    public FlightInfo(UUID flightId, String callsign, String equipment, String departureIata, String arrivalIata, Boolean doorsClosed) {
         this.flightId = flightId;
         this.callsign = callsign;
         this.equipment = equipment;

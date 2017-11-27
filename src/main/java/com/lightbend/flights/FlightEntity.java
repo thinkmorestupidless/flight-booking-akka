@@ -7,6 +7,10 @@ import akka.event.LoggingAdapter;
 import akka.persistence.AbstractPersistentActor;
 import akka.persistence.RecoveryCompleted;
 
+import java.util.Collections;
+import java.util.Optional;
+import java.util.UUID;
+
 public class FlightEntity extends AbstractPersistentActor {
 
     public static final Props props() {
@@ -20,6 +24,7 @@ public class FlightEntity extends AbstractPersistentActor {
     @Override
     public Receive createReceiveRecover() {
         return receiveBuilder()
+                .match(FlightCommand.AddFlight.class, evt -> state = new FlightState(Optional.of(new FlightInfo(UUID.fromString(persistenceId()), evt.callsign, evt.equipment, evt.departureIata, evt.arrivalIata, false)), Collections.emptySet()))
                 .match(RecoveryCompleted.class, m -> log.info("recovery completed"))
                 .matchAny(o -> log.warning("I don't know what to do with {}", o)).build();
     }
@@ -39,7 +44,7 @@ public class FlightEntity extends AbstractPersistentActor {
 
         ActorRef sender = getSender();
 
-        FlightEvent evt = new FlightEvent.FlightAdded(cmd.flightId, cmd.callsign, cmd.equipment, cmd.departureIata, cmd.arrivalIata);
+        FlightEvent evt = new FlightEvent.FlightAdded(UUID.fromString(persistenceId()), cmd.callsign, cmd.equipment, cmd.departureIata, cmd.arrivalIata);
 
         persist(evt, e -> {
             state = FlightState.empty();

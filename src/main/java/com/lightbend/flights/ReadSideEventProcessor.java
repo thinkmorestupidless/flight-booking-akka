@@ -62,7 +62,7 @@ public class ReadSideEventProcessor extends AbstractActor {
         CassandraReadJournal journal = PersistenceQuery.get(getContext().getSystem())
                 .getReadJournalFor(CassandraReadJournal.class, CassandraReadJournal.Identifier());
 
-        journal.eventsByTag("event", Offset.noOffset()).runForeach(this::handleEvent, materializer);
+        journal.eventsByTag("flight", Offset.noOffset()).runForeach(this::handleEvent, materializer);
     }
 
     public void handleEvent(EventEnvelope evt) {
@@ -76,14 +76,6 @@ public class ReadSideEventProcessor extends AbstractActor {
     public void createEvent(FlightEvent.FlightAdded evt) {
         log.info("creating event -> {}", evt);
 
-        session.execute(insertEventStatement.bind(cleanEventId(evt.flightId), evt.callsign, evt.equipment, evt.departureIata, evt.arrivalIata));
-    }
-
-    public UUID cleanEventId(String eventId) {
-        if (eventId.startsWith("flight-")) {
-            return UUID.fromString(eventId.substring("flight-".length()));
-        }
-
-        return UUID.fromString(eventId);
+        session.execute(insertEventStatement.bind(evt.flightId, evt.callsign, evt.equipment, evt.departureIata, evt.arrivalIata));
     }
 }
