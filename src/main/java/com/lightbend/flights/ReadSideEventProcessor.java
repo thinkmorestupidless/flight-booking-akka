@@ -55,8 +55,6 @@ public class ReadSideEventProcessor extends AbstractActor {
     }
 
     public void registerForEvents(ReadSideProtocol.RegisterForEvents cmd) {
-        log.info("registering for events");
-
         Materializer materializer = ActorMaterializer.create(getContext().getSystem());
 
         CassandraReadJournal journal = PersistenceQuery.get(getContext().getSystem())
@@ -66,15 +64,13 @@ public class ReadSideEventProcessor extends AbstractActor {
     }
 
     public void handleEvent(EventEnvelope evt) {
-        log.info("handling event {}", evt.event());
-
         if (evt.event() instanceof FlightEvent.FlightAdded) {
             createEvent((FlightEvent.FlightAdded) evt.event());
         }
     }
 
     public void createEvent(FlightEvent.FlightAdded evt) {
-        log.info("creating event -> {}", evt);
+        log.debug("creating event -> {}", evt);
 
         session.execute(insertEventStatement.bind(evt.flightId, evt.callsign, evt.equipment, evt.departureIata, evt.arrivalIata));
     }

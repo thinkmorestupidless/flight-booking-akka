@@ -32,27 +32,107 @@ public class FlightEntity extends AbstractPersistentActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(FlightCommand.AddFlight.class, cmd -> {
-                    log.info("Here i am finally");
-                    addFlight(cmd);
-                })
+                .match(FlightCommand.AddFlight.class, this::addFlight)
+                .match(FlightCommand.AddPassenger.class, this::addPassenger)
+                .match(FlightCommand.SelectSeat.class, this::selectSeat)
+                .match(FlightCommand.RemovePassenger.class, this::removePassenger)
+                .match(FlightCommand.CloseFlight.class, this::closeFlight)
                 .matchAny(o -> log.warning("I don't know what to do with {}", o)).build();
     }
 
     public void addFlight(FlightCommand.AddFlight cmd) {
-        log.info("adding flight -> {}", cmd);
+        log.debug("adding flight -> {}", cmd);
 
         ActorRef sender = getSender();
 
-        FlightEvent evt = new FlightEvent.FlightAdded(UUID.fromString(persistenceId()), cmd.callsign, cmd.equipment, cmd.departureIata, cmd.arrivalIata);
+        FlightEvent.FlightAdded evt = new FlightEvent.FlightAdded(UUID.fromString(persistenceId()), cmd.callsign, cmd.equipment, cmd.departureIata, cmd.arrivalIata);
 
         persist(evt, e -> {
-            state = FlightState.empty();
-            sender.tell(e, getSelf());
-            getContext().getSystem().eventStream().publish(e);
+            state = new FlightState(Optional.of(new FlightInfo(UUID.fromString(persistenceId()), e.callsign, e.equipment, e.departureIata, e.arrivalIata, false)), Collections.emptySet());
+            replyAndPublish(e, sender);
 
-            log.info("event {} created", persistenceId());
+            log.debug("event {} created", e);
         });
+    }
+
+    public void addPassenger(FlightCommand.AddPassenger cmd) {
+        log.debug("adding passenger -> {}", cmd);
+
+        ActorRef sender = getSender();
+
+        FlightEvent.PassengerAdded evt = new FlightEvent.PassengerAdded(UUID.fromString(persistenceId()), cmd.passengerId, cmd.lastName, cmd.firstName, cmd.initial, cmd.seatAssignment);
+
+        persist(evt, e -> {
+
+            state = state.withPassenger(new Passenger(e.passengerId, e.lastName, e.firstName, e.initial, e.seatAssignment));
+            replyAndPublish(e, sender);
+
+            log.debug("event {} created", e);
+        });
+    }
+
+    public void selectSeat(FlightCommand.SelectSeat cmd) {
+        log.debug("selecting seat -> {}", cmd);
+
+        ActorRef sender = getSender();
+
+        FlightEvent.SeatSelected evt = new FlightEvent.SeatSelected(UUID.fromString(persistenceId()), cmd.passengerId, cmd.seatAssignment);
+
+        persist(evt, e -> {
+            Passenger passenger = state.passengers.stream()
+                                       .filter(p -> p.passengerId.equals(evt.passengerId))
+                                       .findFirst()
+                                       .orElseThrow(() -> new RuntimeException(String.format("passenger %s does not exist!", evt.passengerId)))
+                                       .withSeatAssignment(Optional.ofNullable(evt.seatAssignment));
+
+            state = state.updatePassenger(passenger);
+            replyAndPublish(e, sender);
+
+            log.debug("event {} created", e);
+        });
+    }
+
+    public void removePassenger(FlightCommand.RemovePassenger cmd) {
+        log.debug("removing passenger -> {}", cmd);
+
+        ActorRef sender = getSender();
+
+        FlightEvent.PassengerRemoved evt = new FlightEvent.PassengerRemoved(UUID.fromString(persistenceId()), cmd.passengerId);
+
+        persist(evt, e -> {
+            state = state.withoutPassenger(cmd.passengerId);
+            replyAndPublish(e, sender);
+
+            log.debug("event {} created", e);
+        });
+    }
+
+    public void closeFlight(FlightCommand.CloseFlight cmd) {
+        log.debug("closing flight -> {}", cmd);
+
+        ActorRef sender = getSender();
+
+        FlightEvent.FlightClosed evt = new FlightEvent.FlightClosed(UUID.fromString(persistenceId()));
+
+        persist(evt, e -> {
+           state = state.withDoorsClosed(true);
+           replyAndPublish(e, sender);
+
+           log.debug("event {} created", e);
+        });
+    }
+
+    private void replyAndPublish(FlightEvent e, ActorRef actor) {
+        reply(e, actor);
+        publish(e);
+    }
+
+    private void reply(FlightEvent e, ActorRef actor) {
+        actor.tell(e, getSelf());
+    }
+
+    private void publish(FlightEvent e) {
+        getContext().getSystem().eventStream().publish(e);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.lightbend.flights;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Value;
 
@@ -12,7 +13,7 @@ public interface FlightEvent extends Serializable {
 
     @Value
     @JsonDeserialize
-    final class FlightAdded implements FlightEvent {
+    public final static class FlightAdded implements FlightEvent {
 
         public final UUID flightId;
 
@@ -25,7 +26,11 @@ public interface FlightEvent extends Serializable {
         public final String arrivalIata;
 
         @JsonCreator
-        public FlightAdded(UUID flightId, String callsign, String equipment, String departureIata, String arrivalIata) {
+        public FlightAdded(@JsonProperty("flightId") UUID flightId,
+                           @JsonProperty("callsign") String callsign,
+                           @JsonProperty("equipment") String equipment,
+                           @JsonProperty("departureIata") String departureIata,
+                           @JsonProperty("arrivalIata") String arrivalIata) {
             this.flightId = flightId;
             this.callsign = callsign;
             this.equipment = equipment;
@@ -51,7 +56,12 @@ public interface FlightEvent extends Serializable {
         public final Optional<String> seatAssignment;
 
         @JsonCreator
-        public PassengerAdded(UUID flightId, String passengerId, String lastName, String firstName, String initial, Optional<String> seatAssignment) {
+        public PassengerAdded(@JsonProperty("flightId") UUID flightId,
+                              @JsonProperty("passengerId") String passengerId,
+                              @JsonProperty("lastName") String lastName,
+                              @JsonProperty("firstName") String firstName,
+                              @JsonProperty("initial") String initial,
+                              @JsonProperty("seatAssignment") Optional<String> seatAssignment) {
             this.flightId = flightId;
             this.passengerId = passengerId;
             this.lastName = lastName;
@@ -72,7 +82,9 @@ public interface FlightEvent extends Serializable {
         public final String seatAssignment;
 
         @JsonCreator
-        public SeatSelected(UUID flightId, String passengerId, String seatAssignment) {
+        public SeatSelected(@JsonProperty("flightId") UUID flightId,
+                            @JsonProperty("passengerId") String passengerId,
+                            @JsonProperty("seatAssignment") String seatAssignment) {
             this.flightId = flightId;
             this.passengerId = passengerId;
             this.seatAssignment = seatAssignment;
@@ -88,7 +100,8 @@ public interface FlightEvent extends Serializable {
         public final String passengerId;
 
         @JsonCreator
-        public PassengerRemoved(UUID flightId, String passengerId) {
+        public PassengerRemoved(@JsonProperty("flightId") UUID flightId,
+                                @JsonProperty("passengerId") String passengerId) {
             this.flightId = flightId;
             this.passengerId = passengerId;
         }
@@ -101,7 +114,7 @@ public interface FlightEvent extends Serializable {
         public final UUID flightId;
 
         @JsonCreator
-        public FlightClosed(UUID flightId) {
+        public FlightClosed(@JsonProperty("flightId") UUID flightId) {
             this.flightId = flightId;
         }
     }

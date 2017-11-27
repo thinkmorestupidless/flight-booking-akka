@@ -14,8 +14,8 @@ lazy val `flight-booking-akka` = (project in file("."))
 .settings(
   dockerEntrypoint ++= Seq(
     """-Dcassandra-journal.contact-points.0="$CASSANDRA_SERVICE_NAME"""",
-    """-Dhttp.address="$CUSTOMERSERVICE_BIND_IP"""",
-    """-Dhttp.port="$CUSTOMERSERVICE_BIND_PORT"""",
+    """-Dhttp.address="$FLIGHTSSERVICE_BIND_IP"""",
+    """-Dhttp.port="$FLIGHTSSERVICE_BIND_PORT"""",
     """-Dakka.actor.provider=cluster""",
     """-Dakka.remote.netty.tcp.hostname="$(eval "echo $AKKA_REMOTING_BIND_HOST")"""",
     """-Dakka.remote.netty.tcp.port="$AKKA_REMOTING_BIND_PORT"""",
@@ -28,7 +28,7 @@ lazy val `flight-booking-akka` = (project in file("."))
     case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
     case v => Seq(v)
   },
-  dockerRepository := Some("lightbend"),
+  dockerRepository := Some("thinkmorestupidless"),
   dockerExposedPorts := Seq(9000, 2551),
   dockerUpdateLatest := true,
   libraryDependencies ++= Seq(

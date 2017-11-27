@@ -36,7 +36,7 @@ public class ReadSideSupervisor extends AbstractActorWithStash {
             .build();
 
     public void registerForEvents(ReadSideProtocol.RegisterForEvents cmd) {
-        log.info("registering for events");
+        log.debug("read side registering for events");
 
         getContext().actorOf(ReadSideEventProcessor.props(session), "read-side-events").tell(new ReadSideProtocol.Start(), getSelf());
 
@@ -48,7 +48,7 @@ public class ReadSideSupervisor extends AbstractActorWithStash {
     }
 
     public void start(ReadSideProtocol.Start cmd) {
-        log.info("starting");
+        log.debug("starting read side");
 
         (session = new CassandraSessionImpl()).connect(getContext().getSystem(), getContext().dispatcher()).thenAccept(done -> prepareKeyspace());
     }

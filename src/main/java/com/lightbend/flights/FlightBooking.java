@@ -2,10 +2,8 @@ package com.lightbend.flights;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.server.HttpApp;
 import akka.http.javadsl.server.Route;
-import akka.pattern.PatternsCS;
 import akka.util.Timeout;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -15,6 +13,10 @@ import scala.concurrent.duration.Duration;
 
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
+
+import static akka.http.javadsl.marshallers.jackson.Jackson.marshaller;
+import static akka.http.javadsl.marshallers.jackson.Jackson.unmarshaller;
+import static akka.pattern.PatternsCS.ask;
 
 public class FlightBooking {
 
@@ -45,15 +47,15 @@ public class FlightBooking {
 
             final int port = 8080 + i;
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    Api api = new Api(commands);
-                    try {
-                        api.startServer("localhost", port);
-                    } catch (Exception e) {
-
-                    }
+            // TODO: is this really necessary?
+            // If i put the server inside an Actor i can't get message replies
+            // If i don't put it in a Thread then it blocks at this point and never
+            // continues to the next iteration.
+            new Thread(() -> {
+                try {
+                    new Api(commands).startServer("localhost", port);
+                } catch (Exception e) {
+                    log.error("error starting HTTP server", e);
                 }
             }).start();
         }
@@ -72,21 +74,22 @@ public class FlightBooking {
         @Override
         protected Route routes() {
             return path("flights", () ->
-                route(post(() ->
-                        entity(Jackson.unmarshaller(FlightCommand.AddFlight.class), cmd -> {
+                route(
+                        post(() ->
+                            entity(unmarshaller(FlightCommand.AddFlight.class), cmd -> {
+                                Timeout timeout = new Timeout(Duration.create(5, TimeUnit.SECONDS));
+
+                                CompletionStage<Object> response = ask(backend, cmd, timeout);
+
+                                return completeOKWithFuture(response, marshaller());
+                            })),
+                        get(() -> {
                             Timeout timeout = new Timeout(Duration.create(5, TimeUnit.SECONDS));
 
-                            CompletionStage<Object> response = PatternsCS.ask(backend, cmd, timeout);
+                            CompletionStage<Object> response = ask(backend, new ReadSideProtocol.ListFlights(), timeout);
 
-                            return completeOKWithFuture(response, Jackson.marshaller());
-                        })),
-                    get(() -> {
-                        Timeout timeout = new Timeout(Duration.create(5, TimeUnit.SECONDS));
-
-                        CompletionStage<Object> response = PatternsCS.ask(backend, new ReadSideProtocol.ListFlights(), timeout);
-
-                        return completeOKWithFuture(response, Jackson.marshaller());
-                    })));
+                            return completeOKWithFuture(response, marshaller());
+                        })));
         }
     }
 }

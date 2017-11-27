@@ -1,0 +1,95 @@
+{
+  "apiVersion": "apps/v1beta1",
+  "kind": "StatefulSet",
+  "metadata": {
+    "name": "flightsservice"
+  },
+  "spec": {
+    "serviceName": "flightsservice",
+    "replicas": 3,
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "flightsservice"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "flightsservice",
+            "image": "thinkmorestupidless/flight-booking-akka",
+            "terminationMessagePath": "/tmp/my-log",
+            "imagePullPolicy": "IfNotPresent",
+            "ports": [
+              {
+                "containerPort": 9000,
+                "name": "http-api"
+              },
+              {
+                "containerPort": 2551,
+                "name": "akka-remote"
+              }
+            ],
+            "env": [
+              {
+                "name": "CASSANDRA_SERVICE_NAME",
+                "value": "cassandra.default.svc.cluster.local"
+              },
+              {
+                "name": "APPLICATION_SECRET",
+                "value": "flightsservice-application-secret"
+              },
+              {
+                "name": "FLIGHTSSERVICE_BIND_PORT",
+                "value": "9000"
+              },
+              {
+                "name": "FLIGHTSRSERVICE_BIND_IP",
+                "value": "0.0.0.0"
+              },
+              {
+                "name": "AKKA_ACTOR_SYSTEM_NAME",
+                "value": "FlightBooking"
+              },
+              {
+                "name": "AKKA_REMOTING_BIND_PORT",
+                "value": "2551"
+              },
+              {
+                "name": "AKKA_REMOTING_BIND_HOST",
+                "value": "$HOSTNAME.flightsservice.default.svc.cluster.local"
+              },
+              {
+                "name": "AKKA_SEED_NODES",
+                "value": "flightsservice-0.flightsservice.default.svc.cluster.local:2551,flightsservice-1.flightsservice.default.svc.cluster.local:2551,flightsservice-2.flightsservice.default.svc.cluster.local:2551"
+              },
+              {
+                "name": "POD_NAME",
+                "valueFrom": {
+                  "fieldRef": {
+                    "fieldPath": "metadata.name"
+                  }
+                }
+              },
+              {
+                "name": "POD_NAMESPACE",
+                "valueFrom": {
+                  "fieldRef": {
+                    "fieldPath": "metadata.namespace"
+                  }
+                }
+              }
+            ],
+            "livenessProbe": {
+              "tcpSocket": {
+                "port": 9000
+              },
+              "initialDelaySeconds": 5,
+              "periodSeconds": 5
+            }
+          }
+        ]
+      }
+    }
+  }
+}

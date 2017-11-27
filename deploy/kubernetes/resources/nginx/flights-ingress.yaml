@@ -3,14 +3,14 @@ kind: Ingress
 metadata:
   annotations:
     ingress.kubernetes.io/ssl-redirect: "false"
-  name: customer-ingress
+  name: flights-ingress
 spec:
   rules:
   - http:
       paths:
       - backend:
-          serviceName: customerservice
+          serviceName: flightsservice
           servicePort: 9000
-        path: /customer
+        path: /flights
   tls:
-  - secretName: customer-tls-secret
+  - secretName: flights-tls-secret

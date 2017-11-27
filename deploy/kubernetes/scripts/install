@@ -4,10 +4,10 @@ RESOURCES_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../resources" && pwd)"
 REGISTRY=""
 CONFIGURE_TLS=0
 DEPLOY_CASSANDRA=0
-BUILD_CUSTOMER=0
-UPLOAD_CUSTOMER=0
-DEPLOY_CUSTOMER=0
-DELETE_CUSTOMER=0
+BUILD_FLIGHTS=0
+UPLOAD_FLIGHTS=0
+DEPLOY_FLIGHTS=0
+DELETE_FLIGHTS=0
 DEPLOY_NGINX=0
 MINIKUBE=0
 MINIKUBE_RESET=0
@@ -45,7 +45,7 @@ while test $# -gt 0; do
             MINIKUBE=0
             MINIKUBE_RESET=0
             OPTION=REGISTRY
-            UPLOAD_CUSTOMER=1
+            UPLOAD_FLIGHTS=1
             ;;
         --tls)
             CONFIGURE_TLS=1
@@ -54,13 +54,13 @@ while test $# -gt 0; do
             DEPLOY_CASSANDRA=1
             ;;
         --build)
-            BUILD_CUSTOMER=1
+            BUILD_FLIGHTS=1
             ;;
         --deploy)
-            DEPLOY_CUSTOMER=1
+            DEPLOY_FLIGHTS=1
             ;;
         --delete)
-            DELETE_CUSTOMER=1
+            DELETE_FLIGHTS=1
             ;;
         --nginx)
             DEPLOY_NGINX=1
@@ -68,8 +68,8 @@ while test $# -gt 0; do
         --all)
             CONFIGURE_TLS=1
             DEPLOY_CASSANDRA=1
-            BUILD_CUSTOMER=1
-            DEPLOY_CUSTOMER=1
+            BUILD_FLIGHTS=1
+            DEPLOY_FLIGHTS=1
             DEPLOY_NGINX=1
             ;;
         --*)
@@ -97,10 +97,10 @@ echo "Registry:          $([ "$REGISTRY" = "" ]        && echo "N/A" || echo "$R
 echo "Minikube:          $([ "$MINIKUBE" = 1 ]         && echo "$([ "$MINIKUBE_RESET" = 1 ] && echo "New" || echo "Yes")" || echo "No")"
 echo "Configure TLS:     $([ "$CONFIGURE_TLS" = 1 ]    && echo "Yes" || echo "No")"
 echo "Deploy Cassandra:  $([ "$DEPLOY_CASSANDRA" = 1 ] && echo "Yes" || echo "No")"
-echo "Build Customer:     $([ "$BUILD_CUSTOMER" = 1 ]    && echo "Yes" || echo "No")"
-echo "Upload Customer:    $([ "$UPLOAD_CUSTOMER" = 1 ]   && echo "Yes" || echo "No")"
-echo "Delete Customer:    $([ "$DELETE_CUSTOMER" = 1 ]   && echo "Yes" || echo "No")"
-echo "Deploy Customer:    $([ "$DEPLOY_CUSTOMER" = 1 ]   && echo "Yes" || echo "No")"
+echo "Build Flights:     $([ "$BUILD_FLIGHTS" = 1 ]    && echo "Yes" || echo "No")"
+echo "Upload Flights:    $([ "$UPLOAD_FLIGHTS" = 1 ]   && echo "Yes" || echo "No")"
+echo "Delete Flights:    $([ "$DELETE_FLIGHTS" = 1 ]   && echo "Yes" || echo "No")"
+echo "Deploy Flights:    $([ "$DEPLOY_FLIGHTS" = 1 ]   && echo "Yes" || echo "No")"
 echo "Deploy nginx:      $([ "$DEPLOY_NGINX" = 1 ]     && echo "Yes" || echo "No")"
 echo
 if [ "$MINIKUBE" = 0 ]; then
@@ -156,17 +156,17 @@ if [ "$DEPLOY_CASSANDRA" = 1 ]; then
     wait-for-pods
 fi
 
-if [ "$BUILD_CUSTOMER" = 1 ]; then
+if [ "$BUILD_FLIGHTS" = 1 ]; then
     echo '****************************'
-    echo '***  Building customer    ***'
+    echo '***  Building Flights    ***'
     echo '****************************'
 
     (cd "$RESOURCES_PATH/../../.." && sbt docker:publishLocal)
 fi
 
-if [ "$UPLOAD_CUSTOMER" = 1 ]; then
+if [ "$UPLOAD_FLIGHTS" = 1 ]; then
     IMAGES=()
-    for file in $RESOURCES_PATH/customer/*; do
+    for file in $RESOURCES_PATH/flights/*; do
         image="$(jq -M -r ". | if .kind != \"StatefulSet\" then \"\" else .spec.template.spec.containers | map(.image)[0] end" "$file")"
 
         if [ "$image" != "" ]; then
@@ -175,31 +175,32 @@ if [ "$UPLOAD_CUSTOMER" = 1 ]; then
     done
 
     echo '****************************'
-    echo '***  Uploading customer   ***'
+    echo '***  Uploading Flights   ***'
     echo '****************************'
 
     for image in "${IMAGES[@]}"; do
+        echo "tagging $image with $REGISTRY/$image"
         docker tag "$image" "$REGISTRY/$image"
         docker push "$REGISTRY/$image"
     done
 fi
 
-if [ "$DELETE_CUSTOMER" = 1 ]; then
+if [ "$DELETE_FLIGHTS" = 1 ]; then
     echo '****************************'
-    echo '***  Deleting customer    ***'
+    echo '***  Deleting Flights    ***'
     echo '****************************'
 
-    for file in $RESOURCES_PATH/customer/*; do
+    for file in $RESOURCES_PATH/flights/*; do
         kubectl delete -f "$file"
     done
 fi
 
-if [ "$DEPLOY_CUSTOMER" = 1 ]; then
+if [ "$DEPLOY_FLIGHTS" = 1 ]; then
     echo '****************************'
-    echo '***  Deploying customer   ***'
+    echo '***  Deploying Flights   ***'
     echo '****************************'
 
-    for file in $RESOURCES_PATH/customer/*; do
+    for file in $RESOURCES_PATH/flights/*; do
         if [ "$REGISTRY" = "" ]; then
             kubectl create -f "$file"
         else
@@ -207,7 +208,7 @@ if [ "$DEPLOY_CUSTOMER" = 1 ]; then
                 if .kind == \"StatefulSet\" then
                     .spec.template.spec.containers |= map(
                         .image = \"$REGISTRY/\" + .image |
-                        .imagePullPolicy = \"Always\"
+                        .imagePullPolicy = \"IfNotPresent\"
                     )
                 else
                     .
@@ -232,7 +233,7 @@ kubectl get all
 if [ "$MINIKUBE" = 1 ]; then
     echo
     echo
-    echo "Customer Service (HTTP): $(minikube service --url nginx-ingress | head -n 1)"
-    echo "Customer Service (HTTPS): $(minikube service --url --https nginx-ingress | tail -n 1)"
+    echo "Flights Service (HTTP): $(minikube service --url nginx-ingress | head -n 1)"
+    echo "Flights Service (HTTPS): $(minikube service --url --https nginx-ingress | tail -n 1)"
     echo "Kubernetes Dashboard: $(minikube dashboard --url)"
 fi
