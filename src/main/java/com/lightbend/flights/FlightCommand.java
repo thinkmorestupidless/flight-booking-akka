@@ -9,6 +9,8 @@ import java.io.Serializable;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.google.common.base.Preconditions.*;
+
 public interface FlightCommand extends Serializable {
 
     UUID getFlightId();
@@ -30,10 +32,10 @@ public interface FlightCommand extends Serializable {
                          @JsonProperty("equipment") String equipment,
                          @JsonProperty("departureIata") String departureIata,
                          @JsonProperty("arrivalIata") String arrivalIata) {
-            this.callsign = callsign;
-            this.equipment = equipment;
-            this.departureIata = departureIata;
-            this.arrivalIata = arrivalIata;
+            checkNotNull(this.callsign = callsign);
+            checkNotNull(this.equipment = equipment);
+            checkNotNull(this.departureIata = departureIata);
+            checkNotNull(this.arrivalIata = arrivalIata);
         }
     }
 
@@ -60,10 +62,10 @@ public interface FlightCommand extends Serializable {
                             @JsonProperty("firstName") String firstName,
                             @JsonProperty("initial") String initial,
                             @JsonProperty("seatAssignment") Optional<String> seatAssignment) {
-            this.flightId = flightId;
-            this.passengerId = passengerId;
-            this.lastName = lastName;
-            this.firstName = firstName;
+            checkNotNull(this.flightId = flightId);
+            checkNotNull(this.passengerId = passengerId);
+            checkNotNull(this.lastName = lastName);
+            checkNotNull(this.firstName = firstName);
             this.initial = initial;
             this.seatAssignment = seatAssignment;
         }
@@ -75,17 +77,17 @@ public interface FlightCommand extends Serializable {
 
         public final UUID flightId;
 
-        public final String passengerId;
+        public final UUID passengerId;
 
         public final String seatAssignment;
 
         @JsonCreator
         public SelectSeat(@JsonProperty("flightId") UUID flightId,
-                          @JsonProperty("passengerId") String passengerId,
+                          @JsonProperty("passengerId") UUID passengerId,
                           @JsonProperty("seatAssignment") String seatAssignment) {
-            this.flightId = flightId;
-            this.passengerId = passengerId;
-            this.seatAssignment = seatAssignment;
+            checkNotNull(this.flightId = flightId);
+            checkNotNull(this.passengerId = passengerId);
+            checkNotNull(this.seatAssignment = seatAssignment);
         }
     }
 
@@ -100,8 +102,8 @@ public interface FlightCommand extends Serializable {
         @JsonCreator
         public RemovePassenger(@JsonProperty("flightId") UUID flightId,
                                @JsonProperty("passengerId") UUID passengerId) {
-            this.flightId = flightId;
-            this.passengerId = passengerId;
+            checkNotNull(this.flightId = flightId);
+            checkNotNull(this.passengerId = passengerId);
         }
     }
 
@@ -113,7 +115,7 @@ public interface FlightCommand extends Serializable {
 
         @JsonCreator
         public CloseFlight(@JsonProperty("flightId") UUID flightId) {
-            this.flightId = flightId;
+            checkNotNull(this.flightId = flightId);
         }
     }
 }

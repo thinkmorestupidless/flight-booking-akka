@@ -24,7 +24,15 @@ public class FlightEntity extends AbstractPersistentActor {
     @Override
     public Receive createReceiveRecover() {
         return receiveBuilder()
-                .match(FlightCommand.AddFlight.class, evt -> state = new FlightState(Optional.of(new FlightInfo(UUID.fromString(persistenceId()), evt.callsign, evt.equipment, evt.departureIata, evt.arrivalIata, false)), Collections.emptySet()))
+                .match(FlightEvent.FlightAdded.class, evt -> state = new FlightState(Optional.of(new FlightInfo(UUID.fromString(persistenceId()), evt.callsign, evt.equipment, evt.departureIata, evt.arrivalIata, false)), Collections.emptySet()))
+                .match(FlightEvent.PassengerAdded.class, evt -> state = state.withPassenger(new Passenger(evt.passengerId, evt.lastName, evt.firstName, evt.initial, evt.seatAssignment)))
+                .match(FlightEvent.SeatSelected.class, evt -> state = state.updatePassenger(state.passengers.stream()
+                                                                           .filter(p -> p.passengerId.equals(evt.passengerId))
+                                                                           .findFirst()
+                                                                           .orElseThrow(() -> new RuntimeException(String.format("passenger %s does not exist!", evt.passengerId)))
+                                                                           .withSeatAssignment(Optional.ofNullable(evt.seatAssignment))))
+                .match(FlightCommand.RemovePassenger.class, evt -> state = state.withoutPassenger(evt.passengerId))
+                .match(FlightCommand.CloseFlight.class, evt -> state = state.withDoorsClosed(true))
                 .match(RecoveryCompleted.class, m -> log.info("recovery completed"))
                 .matchAny(o -> log.warning("I don't know what to do with {}", o)).build();
     }
@@ -59,6 +67,10 @@ public class FlightEntity extends AbstractPersistentActor {
         log.debug("adding passenger -> {}", cmd);
 
         ActorRef sender = getSender();
+
+        if (cmd.passengerId == null) {
+            sender.tell("failed", getSelf());
+        }
 
         FlightEvent.PassengerAdded evt = new FlightEvent.PassengerAdded(persistenceUUID(), cmd.passengerId, cmd.lastName, cmd.firstName, cmd.initial, cmd.seatAssignment);
 

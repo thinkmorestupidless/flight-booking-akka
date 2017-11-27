@@ -77,13 +77,13 @@ public interface FlightEvent extends Serializable {
 
         public final UUID flightId;
 
-        public final String passengerId;
+        public final UUID passengerId;
 
         public final String seatAssignment;
 
         @JsonCreator
         public SeatSelected(@JsonProperty("flightId") UUID flightId,
-                            @JsonProperty("passengerId") String passengerId,
+                            @JsonProperty("passengerId") UUID passengerId,
                             @JsonProperty("seatAssignment") String seatAssignment) {
             this.flightId = flightId;
             this.passengerId = passengerId;

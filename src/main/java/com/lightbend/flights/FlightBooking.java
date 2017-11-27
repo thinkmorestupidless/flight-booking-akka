@@ -74,6 +74,18 @@ public class FlightBooking {
             this.backend = backend;
         }
 
+        /**
+         * HTTP routes into this application:
+         *
+         * POST     /flights                            AddFlight
+         * GET      /flights                            ListFlights
+         * DELETE   /flights/:flightId                  CloseFlight(flightId)
+         * POST     /passengers                         AddPassenger
+         * PUT      /passengers                         SelectSeat
+         * DELETE   /passengers/:flightId/:passengerId  RemovePassenger(flightId, passengerId)
+         *
+         * @return
+         */
         @Override
         protected Route routes() {
             return route(
@@ -93,7 +105,7 @@ public class FlightBooking {
                             )
                         ),
                         path(segment("passengers").slash(uuidSegment()).slash(uuidSegment()), (flightId, passengerId) ->
-                            put(() -> execute(new FlightCommand.RemovePassenger(flightId, passengerId)))
+                            delete(() -> execute(new FlightCommand.RemovePassenger(flightId, passengerId)))
                         )
                     );
         }

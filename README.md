@@ -11,3 +11,7 @@ kubectl create -f deploy/kubernetes/resources/cassandra && deploy/kubernetes/scr
 ```
 
 Now you can run the `FlightBooking` app from within your IDE in a single JVM.
+
+## Integration Tests (Postman)
+
+There's a shared Postman collection https://www.getpostman.com/collections/c24eefc199ebbfd1b9ec
