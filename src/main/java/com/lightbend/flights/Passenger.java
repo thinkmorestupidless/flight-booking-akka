@@ -5,12 +5,13 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Value;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Value
 @JsonDeserialize
 public class Passenger {
 
-    public final String passengerId;
+    public final UUID passengerId;
 
     public final String lastName;
 
@@ -21,7 +22,7 @@ public class Passenger {
     public final Optional<String> seatAssignment;
 
     @JsonCreator
-    public Passenger(String passengerId, String lastName, String firstName, String initial, Optional<String> seatAssignment) {
+    public Passenger(UUID passengerId, String lastName, String firstName, String initial, Optional<String> seatAssignment) {
         this.passengerId = passengerId;
         this.lastName = lastName;
         this.firstName = firstName;

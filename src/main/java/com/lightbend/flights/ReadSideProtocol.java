@@ -6,5 +6,9 @@ public interface ReadSideProtocol {
 
     class RegisterForEvents {}
 
-    class ListFlights {}
+    class ListFlights implements ReadSideProtocol {}
+
+    static ReadSideProtocol listFlights() {
+        return new ListFlights();
+    }
 }

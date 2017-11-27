@@ -27,7 +27,8 @@ public class FlightCommands extends AbstractActor {
     public Receive createReceive() {
         return receiveBuilder()
                 .match(FlightCommand.AddFlight.class, cmd -> flights.forward(cmd, getContext()))
-                .match(ReadSideProtocol.ListFlights.class, cmd -> readSide.forward(cmd, getContext()))
+                .match(FlightCommand.class, cmd -> flights.forward(cmd, getContext()))
+                .match(ReadSideProtocol.class, cmd -> readSide.forward(cmd, getContext()))
                 .matchAny(o -> log.warning("I don't know what to do with {}", o))
                 .build();
     }

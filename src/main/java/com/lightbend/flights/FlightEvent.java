@@ -45,7 +45,7 @@ public interface FlightEvent extends Serializable {
 
         public final UUID flightId;
 
-        public final String passengerId;
+        public final UUID passengerId;
 
         public final String lastName;
 
@@ -57,7 +57,7 @@ public interface FlightEvent extends Serializable {
 
         @JsonCreator
         public PassengerAdded(@JsonProperty("flightId") UUID flightId,
-                              @JsonProperty("passengerId") String passengerId,
+                              @JsonProperty("passengerId") UUID passengerId,
                               @JsonProperty("lastName") String lastName,
                               @JsonProperty("firstName") String firstName,
                               @JsonProperty("initial") String initial,
@@ -97,11 +97,11 @@ public interface FlightEvent extends Serializable {
 
         public final UUID flightId;
 
-        public final String passengerId;
+        public final UUID passengerId;
 
         @JsonCreator
         public PassengerRemoved(@JsonProperty("flightId") UUID flightId,
-                                @JsonProperty("passengerId") String passengerId) {
+                                @JsonProperty("passengerId") UUID passengerId) {
             this.flightId = flightId;
             this.passengerId = passengerId;
         }

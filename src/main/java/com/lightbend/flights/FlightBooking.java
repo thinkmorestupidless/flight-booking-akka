@@ -4,6 +4,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.http.javadsl.server.HttpApp;
 import akka.http.javadsl.server.Route;
+import akka.http.javadsl.server.directives.RouteAdapter;
 import akka.util.Timeout;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -11,12 +12,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.concurrent.duration.Duration;
 
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 
 import static akka.http.javadsl.marshallers.jackson.Jackson.marshaller;
 import static akka.http.javadsl.marshallers.jackson.Jackson.unmarshaller;
+import static akka.http.javadsl.server.PathMatchers.segment;
+import static akka.http.javadsl.server.PathMatchers.uuidSegment;
 import static akka.pattern.PatternsCS.ask;
+import static com.lightbend.flights.ReadSideProtocol.listFlights;
 
 public class FlightBooking {
 
@@ -73,23 +76,36 @@ public class FlightBooking {
 
         @Override
         protected Route routes() {
-            return path("flights", () ->
-                route(
-                        post(() ->
-                            entity(unmarshaller(FlightCommand.AddFlight.class), cmd -> {
-                                Timeout timeout = new Timeout(Duration.create(5, TimeUnit.SECONDS));
+            return route(
+                        path("flights", () ->
+                            route(
+                                post(() -> entity(unmarshaller(FlightCommand.AddFlight.class), cmd -> execute(cmd))),
+                                get(() -> execute(listFlights()))
+                            )
+                        ),
+                        path(segment("flights").slash(uuidSegment()), flightId ->
+                            delete(() -> execute(new FlightCommand.CloseFlight(flightId)))
+                        ),
+                        path("passengers", () ->
+                            route(
+                                post(() -> entity(unmarshaller(FlightCommand.AddPassenger.class), cmd -> execute(cmd))),
+                                put(() -> entity(unmarshaller(FlightCommand.SelectSeat.class), cmd -> execute(cmd)))
+                            )
+                        ),
+                        path(segment("passengers").slash(uuidSegment()).slash(uuidSegment()), (flightId, passengerId) ->
+                            put(() -> execute(new FlightCommand.RemovePassenger(flightId, passengerId)))
+                        )
+                    );
+        }
 
-                                CompletionStage<Object> response = ask(backend, cmd, timeout);
+        private RouteAdapter execute(Object o) {
+            Timeout timeout = new Timeout(Duration.create(5, TimeUnit.SECONDS));
 
-                                return completeOKWithFuture(response, marshaller());
-                            })),
-                        get(() -> {
-                            Timeout timeout = new Timeout(Duration.create(5, TimeUnit.SECONDS));
+            return completeOKWithFuture(ask(backend, o, timeout), marshaller());
+        }
 
-                            CompletionStage<Object> response = ask(backend, new ReadSideProtocol.ListFlights(), timeout);
-
-                            return completeOKWithFuture(response, marshaller());
-                        })));
+        private RouteAdapter execute(Object o, Timeout timeout) {
+            return completeOKWithFuture(ask(backend, o, timeout), marshaller());
         }
     }
 }

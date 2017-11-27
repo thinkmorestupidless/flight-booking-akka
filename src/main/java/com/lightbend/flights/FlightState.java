@@ -7,10 +7,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Value;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -48,7 +45,7 @@ public final class FlightState {
     return new FlightState(flightInfo, updated);
   }
 
-  public FlightState withoutPassenger(String passengerId) {
+  public FlightState withoutPassenger(UUID passengerId) {
     return new FlightState(flightInfo, passengers.stream().filter(p -> !p.passengerId.equals(passengerId)).collect(Collectors.toSet()));
   }
 

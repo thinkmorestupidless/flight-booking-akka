@@ -45,10 +45,10 @@ public class FlightEntity extends AbstractPersistentActor {
 
         ActorRef sender = getSender();
 
-        FlightEvent.FlightAdded evt = new FlightEvent.FlightAdded(UUID.fromString(persistenceId()), cmd.callsign, cmd.equipment, cmd.departureIata, cmd.arrivalIata);
+        FlightEvent.FlightAdded evt = new FlightEvent.FlightAdded(persistenceUUID(), cmd.callsign, cmd.equipment, cmd.departureIata, cmd.arrivalIata);
 
         persist(evt, e -> {
-            state = new FlightState(Optional.of(new FlightInfo(UUID.fromString(persistenceId()), e.callsign, e.equipment, e.departureIata, e.arrivalIata, false)), Collections.emptySet());
+            state = new FlightState(Optional.of(new FlightInfo(persistenceUUID(), e.callsign, e.equipment, e.departureIata, e.arrivalIata, false)), Collections.emptySet());
             replyAndPublish(e, sender);
 
             log.debug("event {} created", e);
@@ -60,7 +60,7 @@ public class FlightEntity extends AbstractPersistentActor {
 
         ActorRef sender = getSender();
 
-        FlightEvent.PassengerAdded evt = new FlightEvent.PassengerAdded(UUID.fromString(persistenceId()), cmd.passengerId, cmd.lastName, cmd.firstName, cmd.initial, cmd.seatAssignment);
+        FlightEvent.PassengerAdded evt = new FlightEvent.PassengerAdded(persistenceUUID(), cmd.passengerId, cmd.lastName, cmd.firstName, cmd.initial, cmd.seatAssignment);
 
         persist(evt, e -> {
 
@@ -76,7 +76,7 @@ public class FlightEntity extends AbstractPersistentActor {
 
         ActorRef sender = getSender();
 
-        FlightEvent.SeatSelected evt = new FlightEvent.SeatSelected(UUID.fromString(persistenceId()), cmd.passengerId, cmd.seatAssignment);
+        FlightEvent.SeatSelected evt = new FlightEvent.SeatSelected(persistenceUUID(), cmd.passengerId, cmd.seatAssignment);
 
         persist(evt, e -> {
             Passenger passenger = state.passengers.stream()
@@ -97,7 +97,7 @@ public class FlightEntity extends AbstractPersistentActor {
 
         ActorRef sender = getSender();
 
-        FlightEvent.PassengerRemoved evt = new FlightEvent.PassengerRemoved(UUID.fromString(persistenceId()), cmd.passengerId);
+        FlightEvent.PassengerRemoved evt = new FlightEvent.PassengerRemoved(persistenceUUID(), cmd.passengerId);
 
         persist(evt, e -> {
             state = state.withoutPassenger(cmd.passengerId);
@@ -112,7 +112,7 @@ public class FlightEntity extends AbstractPersistentActor {
 
         ActorRef sender = getSender();
 
-        FlightEvent.FlightClosed evt = new FlightEvent.FlightClosed(UUID.fromString(persistenceId()));
+        FlightEvent.FlightClosed evt = new FlightEvent.FlightClosed(persistenceUUID());
 
         persist(evt, e -> {
            state = state.withDoorsClosed(true);
@@ -138,5 +138,9 @@ public class FlightEntity extends AbstractPersistentActor {
     @Override
     public String persistenceId() {
         return getSelf().path().name();
+    }
+
+    private UUID persistenceUUID() {
+        return UUID.fromString(persistenceId());
     }
 }
