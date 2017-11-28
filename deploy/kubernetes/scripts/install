@@ -208,7 +208,7 @@ if [ "$DEPLOY_FLIGHTS" = 1 ]; then
                 if .kind == \"StatefulSet\" then
                     .spec.template.spec.containers |= map(
                         .image = \"$REGISTRY/\" + .image |
-                        .imagePullPolicy = \"IfNotPresent\"
+                        .imagePullPolicy = \"Always\"
                     )
                 else
                     .

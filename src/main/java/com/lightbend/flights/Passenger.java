@@ -7,6 +7,9 @@ import lombok.Value;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Holds state for the passengers on a flight.
+ */
 @Value
 @JsonDeserialize
 public class Passenger {

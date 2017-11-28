@@ -11,9 +11,12 @@ import akka.persistence.query.PersistenceQuery;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import com.datastax.driver.core.PreparedStatement;
+import com.lightbend.cassandra.CassandraSession;
 
-import java.util.UUID;
-
+/**
+ * Handles the events dispatched from the write side.
+ * At the moment it just adds flights.
+ */
 public class ReadSideEventProcessor extends AbstractActor {
 
     public static Props props(CassandraSession session) {

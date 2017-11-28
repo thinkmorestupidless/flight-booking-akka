@@ -1,10 +1,13 @@
 package com.lightbend.flights;
 
+/**
+ * Defines the messages that can be sent to the read side.
+ */
 public interface ReadSideProtocol {
 
-    class Start {}
+    class Start implements ReadSideProtocol {}
 
-    class RegisterForEvents {}
+    class RegisterForEvents implements ReadSideProtocol {}
 
     class ListFlights implements ReadSideProtocol {}
 

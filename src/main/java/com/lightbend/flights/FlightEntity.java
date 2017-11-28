@@ -26,11 +26,7 @@ public class FlightEntity extends AbstractPersistentActor {
         return receiveBuilder()
                 .match(FlightEvent.FlightAdded.class, evt -> state = new FlightState(Optional.of(new FlightInfo(UUID.fromString(persistenceId()), evt.callsign, evt.equipment, evt.departureIata, evt.arrivalIata, false)), Collections.emptySet()))
                 .match(FlightEvent.PassengerAdded.class, evt -> state = state.withPassenger(new Passenger(evt.passengerId, evt.lastName, evt.firstName, evt.initial, evt.seatAssignment)))
-                .match(FlightEvent.SeatSelected.class, evt -> state = state.updatePassenger(state.passengers.stream()
-                                                                           .filter(p -> p.passengerId.equals(evt.passengerId))
-                                                                           .findFirst()
-                                                                           .orElseThrow(() -> new RuntimeException(String.format("passenger %s does not exist!", evt.passengerId)))
-                                                                           .withSeatAssignment(Optional.ofNullable(evt.seatAssignment))))
+                .match(FlightEvent.SeatSelected.class, evt -> state = updatePassenger(evt))
                 .match(FlightCommand.RemovePassenger.class, evt -> state = state.withoutPassenger(evt.passengerId))
                 .match(FlightCommand.CloseFlight.class, evt -> state = state.withDoorsClosed(true))
                 .match(RecoveryCompleted.class, m -> log.info("recovery completed"))
@@ -91,13 +87,7 @@ public class FlightEntity extends AbstractPersistentActor {
         FlightEvent.SeatSelected evt = new FlightEvent.SeatSelected(persistenceUUID(), cmd.passengerId, cmd.seatAssignment);
 
         persist(evt, e -> {
-            Passenger passenger = state.passengers.stream()
-                                       .filter(p -> p.passengerId.equals(evt.passengerId))
-                                       .findFirst()
-                                       .orElseThrow(() -> new RuntimeException(String.format("passenger %s does not exist!", evt.passengerId)))
-                                       .withSeatAssignment(Optional.ofNullable(evt.seatAssignment));
-
-            state = state.updatePassenger(passenger);
+            state = updatePassenger(e);
             replyAndPublish(e, sender);
 
             log.debug("event {} created", e);
@@ -132,6 +122,18 @@ public class FlightEntity extends AbstractPersistentActor {
 
            log.debug("event {} created", e);
         });
+    }
+
+    private FlightState updatePassenger(FlightEvent.SeatSelected evt) {
+        return updatePassenger(evt.passengerId, evt.seatAssignment);
+    }
+
+    private FlightState updatePassenger(UUID passengerId, String seatAssignment) {
+        return state.updatePassenger(state.passengers.stream()
+                    .filter(p -> p.passengerId.equals(passengerId))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException(String.format("passenger %s does not exist!", passengerId)))
+                    .withSeatAssignment(Optional.ofNullable(seatAssignment)));
     }
 
     private void replyAndPublish(FlightEvent e, ActorRef actor) {

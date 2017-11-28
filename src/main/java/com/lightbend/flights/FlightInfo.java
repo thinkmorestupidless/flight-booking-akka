@@ -6,15 +6,23 @@ import lombok.Value;
 
 import java.util.UUID;
 
+/**
+ * Handles state details of the flight.
+ */
 @Value
 @JsonDeserialize
 public class FlightInfo {
 
     public final UUID flightId;
+
     public final String callsign;
+
     public final String equipment;
+
     public final String departureIata;
+
     public final String arrivalIata;
+
     public final Boolean doorsClosed;
 
     @JsonCreator

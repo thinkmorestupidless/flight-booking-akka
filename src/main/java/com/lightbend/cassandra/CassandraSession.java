@@ -1,4 +1,4 @@
-package com.lightbend.flights;
+package com.lightbend.cassandra;
 
 import akka.Done;
 import akka.actor.ActorSystem;

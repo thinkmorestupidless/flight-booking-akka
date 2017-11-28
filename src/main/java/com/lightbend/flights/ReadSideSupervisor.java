@@ -5,9 +5,15 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import com.lightbend.cassandra.CassandraSession;
+import com.lightbend.cassandra.CassandraSessionImpl;
 
 import java.util.Collections;
 
+/**
+ * Supervises the read side.
+ * Read side is made up of the Actor that handles queries and the Actor that handles the events from the write side.
+ */
 public class ReadSideSupervisor extends AbstractActorWithStash {
 
     public static Props props() {

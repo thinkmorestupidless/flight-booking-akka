@@ -39,14 +39,18 @@ public final class FlightState {
   }
 
   public FlightState updatePassenger(Passenger passenger) {
-    Set<Passenger> updated = passengers.stream().filter(p -> !p.passengerId.equals(passenger.passengerId)).collect(Collectors.toSet());
+    Set<Passenger> updated = passengers.stream()
+                                       .filter(p -> !p.passengerId.equals(passenger.passengerId))
+                                       .collect(Collectors.toSet());
     updated.add(passenger);
 
     return new FlightState(flightInfo, updated);
   }
 
   public FlightState withoutPassenger(UUID passengerId) {
-    return new FlightState(flightInfo, passengers.stream().filter(p -> !p.passengerId.equals(passengerId)).collect(Collectors.toSet()));
+    return new FlightState(flightInfo, passengers.stream()
+                                                 .filter(p -> !p.passengerId.equals(passengerId))
+                                                 .collect(Collectors.toSet()));
   }
 
   public FlightState withDoorsClosed(Boolean doorsClosed) {

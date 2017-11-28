@@ -17,9 +17,8 @@
         "containers": [
           {
             "name": "flightsservice",
-            "image": "thinkmorestupidless/flight-booking-akka",
+            "image": "flight-booking-akka",
             "terminationMessagePath": "/tmp/my-log",
-            "imagePullPolicy": "IfNotPresent",
             "ports": [
               {
                 "containerPort": 9000,

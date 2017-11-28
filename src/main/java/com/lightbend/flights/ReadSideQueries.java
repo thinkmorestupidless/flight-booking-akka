@@ -5,11 +5,16 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import com.lightbend.cassandra.CassandraSession;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Handles queries for the read side.
+ * Currently just lists all flights.
+ */
 public class ReadSideQueries extends AbstractActor {
 
     public static Props props(CassandraSession session) {
