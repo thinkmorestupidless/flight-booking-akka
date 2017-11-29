@@ -64,10 +64,6 @@ public class FlightEntity extends AbstractPersistentActor {
 
         ActorRef sender = getSender();
 
-        if (cmd.passengerId == null) {
-            sender.tell("failed", getSelf());
-        }
-
         FlightEvent.PassengerAdded evt = new FlightEvent.PassengerAdded(persistenceUUID(), cmd.passengerId, cmd.lastName, cmd.firstName, cmd.initial, cmd.seatAssignment);
 
         persist(evt, e -> {

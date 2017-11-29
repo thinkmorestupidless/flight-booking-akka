@@ -48,7 +48,8 @@ lazy val `flight-booking-akka` = (project in file("."))
     "junit" % "junit" % "4.12" % "test",
     "com.typesafe.akka" %% "akka-testkit" % "2.5.6" % "test",
     "com.typesafe.akka" %% "akka-http-testkit" % "10.0.10" % "test",
-    "com.typesafe.akka" %% "akka-persistence-cassandra-launcher" % "0.58" % "test"
+    "com.typesafe.akka" %% "akka-persistence-cassandra-launcher" % "0.58" % "test",
+    "com.github.dnvriend" %% "akka-persistence-inmemory" % "2.5.1.1" % "test"
   )
 )
 
