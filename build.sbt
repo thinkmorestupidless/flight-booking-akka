@@ -39,6 +39,7 @@ lazy val `flight-booking-akka` = (project in file("."))
     "com.typesafe.akka" %% "akka-http" % "10.0.10",
     "com.typesafe.akka" %% "akka-http-jackson" % "10.0.10",
     "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.56" exclude("com.google.guava", "guava"),
+    "com.typesafe.akka" %% "akka-stream-kafka" % "0.18",
     "com.datastax.cassandra" % "cassandra-driver-extras" % "3.1.4",
     "org.projectlombok" % "lombok" % "1.16.10" % "compile",
     "com.opengamma.strata" % "strata-collect" % "1.4.2",
