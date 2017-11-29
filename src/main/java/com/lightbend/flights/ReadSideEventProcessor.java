@@ -60,10 +60,9 @@ public class ReadSideEventProcessor extends AbstractActor {
     public void registerForEvents(ReadSideProtocol.RegisterForEvents cmd) {
         Materializer materializer = ActorMaterializer.create(getContext().getSystem());
 
-        CassandraReadJournal journal = PersistenceQuery.get(getContext().getSystem())
-                .getReadJournalFor(CassandraReadJournal.class, CassandraReadJournal.Identifier());
-
-        journal.eventsByTag("flight", Offset.noOffset()).runForeach(this::handleEvent, materializer);
+        PersistenceQuery.get(getContext().getSystem())
+                        .getReadJournalFor(CassandraReadJournal.class, CassandraReadJournal.Identifier())
+                        .eventsByTag("flight", Offset.noOffset()).runForeach(this::handleEvent, materializer);
     }
 
     public void handleEvent(EventEnvelope evt) {
