@@ -2,6 +2,7 @@ package com.lightbend.flights;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Value;
 
@@ -9,6 +10,7 @@ import java.io.Serializable;
 import java.util.Optional;
 import java.util.UUID;
 
+@JsonTypeInfo(property = "type", use = JsonTypeInfo.Id.CLASS)
 public interface FlightEvent extends Serializable {
 
     @Value

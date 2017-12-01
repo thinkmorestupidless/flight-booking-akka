@@ -1,6 +1,8 @@
 package com.lightbend.flights;
 
 import akka.actor.AbstractActor;
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
@@ -12,6 +14,7 @@ import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
 import com.datastax.driver.core.PreparedStatement;
 import com.lightbend.cassandra.CassandraSession;
+import com.lightbend.kafka.KafkaProtocol;
 
 /**
  * Handles the events dispatched from the write side.
@@ -19,18 +22,25 @@ import com.lightbend.cassandra.CassandraSession;
  */
 public class ReadSideEventProcessor extends AbstractActor {
 
-    public static Props props(CassandraSession session) {
-        return Props.create(ReadSideEventProcessor.class, () -> new ReadSideEventProcessor(session));
+    public static Props props(CassandraSession session, EventRegistrar registrar) {
+        return Props.create(ReadSideEventProcessor.class, () -> new ReadSideEventProcessor(session, registrar));
     }
 
     private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     private final CassandraSession session;
 
+    private final EventRegistrar registrar;
+
+    private final Receive receiveEvents = receiveBuilder().match(FlightEvent.FlightAdded.class, this::flightAdded)
+                                                          .matchAny(o -> log.warning("i don't know what to do with {}", o))
+                                                          .build();
+
     private PreparedStatement insertEventStatement;
 
-    public ReadSideEventProcessor(CassandraSession session) {
+    public ReadSideEventProcessor(CassandraSession session, EventRegistrar registrar) {
         this.session = session;
+        this.registrar = registrar;
     }
 
     @Override
@@ -58,21 +68,13 @@ public class ReadSideEventProcessor extends AbstractActor {
     }
 
     public void registerForEvents(ReadSideProtocol.RegisterForEvents cmd) {
-        Materializer materializer = ActorMaterializer.create(getContext().getSystem());
+        getContext().become(receiveEvents);
 
-        PersistenceQuery.get(getContext().getSystem())
-                        .getReadJournalFor(CassandraReadJournal.class, CassandraReadJournal.Identifier())
-                        .eventsByTag("flight", Offset.noOffset()).runForeach(this::handleEvent, materializer);
+        registrar.register(getSelf());
     }
 
-    public void handleEvent(EventEnvelope evt) {
-        if (evt.event() instanceof FlightEvent.FlightAdded) {
-            createEvent((FlightEvent.FlightAdded) evt.event());
-        }
-    }
-
-    public void createEvent(FlightEvent.FlightAdded evt) {
-        log.debug("creating event -> {}", evt);
+    public void flightAdded(FlightEvent.FlightAdded evt) {
+        log.info("creating event -> {}", evt);
 
         session.execute(insertEventStatement.bind(evt.flightId, evt.callsign, evt.equipment, evt.departureIata, evt.arrivalIata));
     }

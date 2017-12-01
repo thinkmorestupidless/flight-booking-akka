@@ -17,9 +17,12 @@ import akka.stream.javadsl.SourceQueue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.lightbend.flights.FlightEvent;
+import lombok.Value;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -35,25 +38,42 @@ public class KafkaConsumerActor extends AbstractActor {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    private final Map<String, Set<ActorRef>> subscribers = Maps.newHashMap();
+    private final Map<String, Subscription> subscriptions = Maps.newHashMap();
+
+    private Materializer materializer;
 
     private SourceQueue<Object> queue;
 
     @Override
     public void preStart() throws Exception {
-
-        Materializer materializer = ActorMaterializer.create(getContext());
-
-        Consumer.committableSource(ConsumerSettings.create(getContext().getSystem(), new ByteArrayDeserializer(), new StringDeserializer()), Subscriptions.topics("flights"))
-                .mapAsync(1, this::handleMessage)
-                .batch(20,
-                        first -> ConsumerMessage.emptyCommittableOffsetBatch().updated(first),
-                        (batch, elem) -> batch.updated(elem))
-                .mapAsync(3, c -> c.commitJavadsl())
-                .runWith(Sink.ignore(), materializer);
+        materializer = ActorMaterializer.create(getContext());
     }
 
-    private CompletionStage<ConsumerMessage.CommittableOffset> handleMessage(ConsumerMessage.CommittableMessage<byte[], String> msg) {
+    private CompletionStage<ConsumerMessage.CommittableOffset> flightAdded(ConsumerMessage.CommittableMessage<byte[], String> msg) throws IOException {
+        log.info("handling flight-added -> {}", msg.record().value());
+
+        return handleMessage("flight-added", msg);
+    }
+
+    private CompletionStage<ConsumerMessage.CommittableOffset> handleMessage(String topic, ConsumerMessage.CommittableMessage<byte[], String> msg) throws IOException {
+        log.info("handling message {} with {}", msg, subscriptions);
+
+        if (subscriptions.containsKey(topic)) {
+            Subscription subscription = subscriptions.get(topic);
+
+            log.info("subscription is {}", subscription);
+
+            FlightEvent evt = mapper.readValue(msg.record().value(), FlightEvent.class);
+
+            log.info("deserialized event -> {}", evt);
+
+            subscription.getSubscribers().forEach(subscriber ->
+            {
+                log.info("sending {} to {}", evt, subscriber);
+                subscriber.tell(evt, getSelf());
+            });
+        }
+
         return CompletableFuture.completedFuture(msg.committableOffset());
     }
 
@@ -65,10 +85,40 @@ public class KafkaConsumerActor extends AbstractActor {
     }
 
     public void subscribe(KafkaProtocol.SubscribeToTopic subscription) {
-        if (!subscribers.containsKey(subscription.getTopic())) {
-            subscribers.put(subscription.getTopic(), Sets.newHashSet());
+        log.info("subscribing {} to topic -> {}", getSender(), subscription);
+
+        ActorRef sender = getSender();
+
+        if (!subscriptions.containsKey(subscription.getTopic())) {
+            CompletionStage<Done> stream = Consumer.committableSource(ConsumerSettings.create(getContext().getSystem(), new ByteArrayDeserializer(), new StringDeserializer()).withGroupId("flight-booking"), Subscriptions.topics(subscription.getTopic()))
+                    .mapAsync(1, this::flightAdded)
+                    .batch(20,
+                            first -> ConsumerMessage.emptyCommittableOffsetBatch().updated(first),
+                            (batch, elem) -> batch.updated(elem))
+                    .mapAsync(3, c -> c.commitJavadsl())
+                    .runWith(Sink.ignore(), materializer);
+
+            subscriptions.put(subscription.getTopic(), new Subscription(stream));
         }
 
-        subscribers.get(subscription.getTopic()).add(getSender());
+        subscriptions.get(subscription.getTopic()).getSubscribers().add(sender);
+    }
+
+    @Value
+    public class Subscription {
+
+        private final CompletionStage<Done> stream;
+
+        private final Set<ActorRef> subscribers;
+
+        public Subscription(CompletionStage<Done> stream) {
+            this.stream = stream;
+
+            subscribers = Sets.newHashSet();
+        }
+
+        public Set<ActorRef> getSubscribers() {
+            return subscribers;
+        }
     }
 }

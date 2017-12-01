@@ -11,6 +11,7 @@ import akka.stream.OverflowStrategy;
 import akka.stream.javadsl.Source;
 import akka.stream.javadsl.SourceQueue;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lightbend.flights.FlightEvent;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -25,14 +26,13 @@ public class KafkaProducerActor extends AbstractActor {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    private SourceQueue<Object> queue;
+    private SourceQueue<KafkaProtocol.SendMessage<Long, FlightEvent>> queue;
 
     @Override
     public void preStart() throws Exception {
 
-        queue = Source.queue(100, OverflowStrategy.backpressure())
-                .map(o -> mapper.writeValueAsString(o))
-                .map(o -> new ProducerRecord<byte[], String>("flights", o))
+        queue = Source.<KafkaProtocol.SendMessage<Long, FlightEvent>>queue(100, OverflowStrategy.backpressure())
+                .map(o -> new ProducerRecord<byte[], String>(o.getTopic(), mapper.writeValueAsString(o.getMessage())))
                 .to(Producer.plainSink(ProducerSettings.create(getContext().getSystem(), new ByteArraySerializer(), new StringSerializer())))
                 .run(ActorMaterializer.create(getContext()));
     }
@@ -45,9 +45,9 @@ public class KafkaProducerActor extends AbstractActor {
                 .build();
     }
 
-    public void sendMessage(KafkaProtocol.SendMessage m) {
-        log.info("sending message -> {}", m);
+    public void sendMessage(KafkaProtocol.SendMessage<Long, FlightEvent> m) {
+        log.info("offering message -> {}", m);
 
-        queue.offer(m.getMessage());
+        queue.offer(m);
     }
 }

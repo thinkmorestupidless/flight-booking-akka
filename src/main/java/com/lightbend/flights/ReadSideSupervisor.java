@@ -16,15 +16,21 @@ import java.util.Collections;
  */
 public class ReadSideSupervisor extends AbstractActorWithStash {
 
-    public static Props props() {
-        return Props.create(ReadSideSupervisor.class, ReadSideSupervisor::new);
+    public static Props props(EventRegistrar registrar) {
+        return Props.create(ReadSideSupervisor.class, () -> new ReadSideSupervisor(registrar));
     }
 
     private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     private CassandraSession session;
 
+    private EventRegistrar registrar;
+
     private ActorRef queries;
+
+    public ReadSideSupervisor(EventRegistrar registrar) {
+        this.registrar = registrar;
+    }
 
     @Override
     public Receive createReceive() {
@@ -44,7 +50,7 @@ public class ReadSideSupervisor extends AbstractActorWithStash {
     public void registerForEvents(ReadSideProtocol.RegisterForEvents cmd) {
         log.debug("read side registering for events");
 
-        getContext().actorOf(ReadSideEventProcessor.props(session), "read-side-events").tell(new ReadSideProtocol.Start(), getSelf());
+        getContext().actorOf(ReadSideEventProcessor.props(session, registrar), "read-side-events").tell(new ReadSideProtocol.Start(), getSelf());
 
         queries = getContext().actorOf(ReadSideQueries.props(session), "read-side-queries");
         queries.tell(new ReadSideProtocol.Start(), getSelf());

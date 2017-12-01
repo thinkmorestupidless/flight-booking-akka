@@ -6,6 +6,7 @@ import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.stream.ActorMaterializer;
 import akka.stream.Materializer;
+import com.lightbend.kafka.KafkaActor;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
@@ -33,7 +34,12 @@ public class FlightBooking {
             Materializer materializer = ActorMaterializer.create(system);
 
             ActorRef flights = system.actorOf(Flights.props(), "flights");
-            ActorRef readSide = system.actorOf(ReadSideSupervisor.props(), "read-side");
+
+            ActorRef kafka = system.actorOf(KafkaActor.props(), "kafka");
+
+            ActorRef broker = system.actorOf(MessageBroker.props(kafka), "message-broker");
+
+            ActorRef readSide = system.actorOf(ReadSideSupervisor.props(new KafkaEventRegistrar(kafka)), "read-side-supervisor");
 
             ActorRef commands = system.actorOf(FlightCommands.props(flights, readSide), "flight-commands");
 
