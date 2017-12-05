@@ -9,7 +9,26 @@ EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Java
 
 lazy val akkaVersion = "2.5.6"
 
-lazy val `flight-booking-akka` = (project in file("."))
+lazy val `kafka-server` = (project in file("kafka-server"))
+.settings(libraryDependencies ++= Seq(
+  "org.apache.kafka" %% "kafka" % "0.11.0.0",
+  "org.apache.curator" % "curator-framework" % "2.10.0",
+  "org.apache.curator" % "curator-test" % "2.10.0",
+  "ch.qos.logback" % "logback-classic" % "1.0.13",
+  "com.opengamma.strata" % "strata-collect" % "1.4.2"
+  )
+)
+
+lazy val `cassandra-server` = (project in file("cassandra-server"))
+  .settings(libraryDependencies ++= Seq(
+    "org.cassandraunit" % "cassandra-unit" % "3.3.0.2",
+    "com.datastax.cassandra" % "cassandra-driver-core" % "3.2.0",
+    "ch.qos.logback" % "logback-classic" % "1.0.13",
+    "com.opengamma.strata" % "strata-collect" % "1.4.2"
+  )
+)
+
+lazy val `flight-booking` = (project in file("flight-booking"))
 .enablePlugins(JavaAppPackaging)
 .settings(
   dockerEntrypoint ++= Seq(
@@ -39,6 +58,7 @@ lazy val `flight-booking-akka` = (project in file("."))
     "com.typesafe.akka" %% "akka-http" % "10.0.10",
     "com.typesafe.akka" %% "akka-http-jackson" % "10.0.10",
     "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.56" exclude("com.google.guava", "guava"),
+    "com.typesafe.akka" %% "akka-stream-kafka" % "0.18",
     "com.datastax.cassandra" % "cassandra-driver-extras" % "3.1.4",
     "org.projectlombok" % "lombok" % "1.16.10" % "compile",
     "com.opengamma.strata" % "strata-collect" % "1.4.2",

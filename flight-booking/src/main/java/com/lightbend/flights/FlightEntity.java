@@ -45,7 +45,7 @@ public class FlightEntity extends AbstractPersistentActor {
     }
 
     public void addFlight(FlightCommand.AddFlight cmd) {
-        log.debug("adding flight -> {}", cmd);
+        log.info("adding flight -> {}", cmd);
 
         ActorRef sender = getSender();
 
@@ -55,7 +55,7 @@ public class FlightEntity extends AbstractPersistentActor {
             state = new FlightState(Optional.of(new FlightInfo(persistenceUUID(), e.callsign, e.equipment, e.departureIata, e.arrivalIata, false)), Collections.emptySet());
             replyAndPublish(e, sender);
 
-            log.debug("event {} created", e);
+            log.info("event {} created", e);
         });
     }
 
