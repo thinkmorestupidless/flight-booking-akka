@@ -9,18 +9,27 @@ EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Java
 
 lazy val akkaVersion = "2.5.6"
 
+lazy val root = (project in file("."))
+  .settings(name := "flight-booking-akka")
+  .aggregate(`kafka-server`, `cassandra-server`, `flight-booking`)
+  .settings(commonSettings: _*)
+
 lazy val `kafka-server` = (project in file("kafka-server"))
-.settings(libraryDependencies ++= Seq(
-  "org.apache.kafka" %% "kafka" % "0.11.0.0",
-  "org.apache.curator" % "curator-framework" % "2.10.0",
-  "org.apache.curator" % "curator-test" % "2.10.0",
-  "ch.qos.logback" % "logback-classic" % "1.0.13",
-  "com.opengamma.strata" % "strata-collect" % "1.4.2"
+.settings(
+  mainClass in Compile := Some("com.lightbend.kafka.KafkaLauncher"),
+  libraryDependencies ++= Seq(
+    "org.apache.kafka" %% "kafka" % "0.11.0.0",
+    "org.apache.curator" % "curator-framework" % "2.10.0",
+    "org.apache.curator" % "curator-test" % "2.10.0",
+    "ch.qos.logback" % "logback-classic" % "1.0.13",
+    "com.opengamma.strata" % "strata-collect" % "1.4.2"
   )
 )
 
 lazy val `cassandra-server` = (project in file("cassandra-server"))
-  .settings(libraryDependencies ++= Seq(
+.settings(
+  mainClass in Compile := Some("com.lightbend.cassandra.CassandraLauncher"),
+  libraryDependencies ++= Seq(
     "org.cassandraunit" % "cassandra-unit" % "3.3.0.2",
     "com.datastax.cassandra" % "cassandra-driver-core" % "3.2.0",
     "ch.qos.logback" % "logback-classic" % "1.0.13",
@@ -80,3 +89,7 @@ licenses := Seq(("CC0", url("http://creativecommons.org/publicdomain/zero/1.0"))
 resolvers += "krasserm at bintray" at "http://dl.bintray.com/krasserm/maven"
 
 
+def commonSettings: Seq[Setting[_]] = eclipseSettings ++ Seq(
+  javacOptions in Compile ++= Seq("-encoding", "UTF-8", "-source", "1.8"),
+  javacOptions in(Compile, compile) ++= Seq("-Xlint:unchecked", "-Xlint:deprecation", "-parameters")
+)

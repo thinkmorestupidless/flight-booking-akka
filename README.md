@@ -4,11 +4,11 @@
 
 Easiest way to get started is running Kafka and Cassandra via the *-server projects provided and then starting the app itself. 
 
-You can do this via your favourite IDE or from the terminal with
+You can do this via your favourite IDE or from the terminal by running the following commands each in a different terminal window/session
 
 ```
-
-
+sbt 'kafka-server/run'
+sbt 'cassandra-server/run'
 ```
 
 ## Running in Kubernetes

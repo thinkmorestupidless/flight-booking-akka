@@ -1,6 +1,8 @@
 package com.lightbend.kafka;
 
 import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Properties;
 
 public class KafkaLauncher {
@@ -18,6 +20,14 @@ public class KafkaLauncher {
     private static KafkaLocalServer kafka;
 
     public static void main(String[] args) throws Exception {
+
+        ClassLoader cl = ClassLoader.getSystemClassLoader();
+
+        URL[] urls = ((URLClassLoader)cl).getURLs();
+
+        for(URL url: urls){
+            System.out.println(url.getFile());
+        }
 
         //load properties
         Properties kafkaProperties = PropertiesLoader.from("/kafkalocal.properties");
