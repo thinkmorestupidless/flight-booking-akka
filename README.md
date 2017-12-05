@@ -11,7 +11,25 @@ sbt 'kafka-server/run'
 sbt 'cassandra-server/run'
 ```
 
-## Running in Kubernetes
+Now Kafka and Cassandra are running you can run the Akka cluster.
+
+Either run 3 nodes in the same JVM by default by simply running `com.lightbend.flights.FlightBookin` as the main class with no arguments.
+
+Or, run a single node by passing the port number you want the node to listen on
+
+```
+sbt 'flight-booking/run 3551'
+sbt 'flight-booking/run 3552'
+sbt 'flight-booking/run 3553'
+
+...you get the idea...
+```
+
+## Integration Tests (Postman)
+
+Once you're up and running there's a Postman collection that'll run all the available API calls for you at https://www.getpostman.com/collections/c24eefc199ebbfd1b9ec
+
+## Running in Kubernetes (INCOMPLETE)
 
 ```sh
 # Use minikube locally
@@ -23,6 +41,3 @@ kubectl create -f deploy/kubernetes/resources/cassandra && deploy/kubernetes/scr
 
 Now you can run the `FlightBooking` app from within your IDE in a single JVM.
 
-## Integration Tests (Postman)
-
-There's a shared Postman collection https://www.getpostman.com/collections/c24eefc199ebbfd1b9ec

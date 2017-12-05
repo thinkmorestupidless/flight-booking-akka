@@ -40,6 +40,7 @@ lazy val `cassandra-server` = (project in file("cassandra-server"))
 lazy val `flight-booking` = (project in file("flight-booking"))
 .enablePlugins(JavaAppPackaging)
 .settings(
+  mainClass in Compile := Some("com.lightbend.flights.FlightBooking"),
   dockerEntrypoint ++= Seq(
     """-Dcassandra-journal.contact-points.0="$CASSANDRA_SERVICE_NAME"""",
     """-Dhttp.address="$FLIGHTSSERVICE_BIND_IP"""",
