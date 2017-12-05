@@ -12,9 +12,26 @@ import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Simple microservice implementation using Akka.
+ *
+ * Receives HTTP requests and passes them to Actors which do the work and respond.
+ * Implements CQRS - Persistent Entities emit events which are observed by the read-side.
+ *
+ * Change the 'CQRS' setting to switch between using Akka's built-in 'persistence-query' module (with VIA.AKKA) or
+ * Kafka (with VIA.KAFKA) to provide the communication between write and read sides.
+ *
+ * (NOTE: If you're using Kafka for passing events to the read-side then make sure you have a Kafka broker running!).
+ */
 public class FlightBooking {
 
+    public enum VIA {
+        AKKA, KAFKA
+    }
+
     private final static Logger log = LoggerFactory.getLogger(FlightBooking.class);
+
+    private final static VIA CQRS = VIA.KAFKA;
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
@@ -39,7 +56,9 @@ public class FlightBooking {
 
             ActorRef broker = system.actorOf(MessageBroker.props(kafka), "message-broker");
 
-            ActorRef readSide = system.actorOf(ReadSideSupervisor.props(new KafkaEventRegistrar(kafka)), "read-side-supervisor");
+            EventRegistrar registrar = CQRS == VIA.AKKA ? new PersistenceQueryEventRegistrar(system) : new KafkaEventRegistrar(kafka);
+
+            ActorRef readSide = system.actorOf(ReadSideSupervisor.props(registrar), "read-side-supervisor");
 
             ActorRef commands = system.actorOf(FlightCommands.props(flights, readSide), "flight-commands");
 

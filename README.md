@@ -2,6 +2,17 @@
 
 ## Quickstart
 
+Easiest way to get started is running Kafka and Cassandra via the *-server projects provided and then starting the app itself. 
+
+You can do this via your favourite IDE or from the terminal with
+
+```
+
+
+```
+
+## Running in Kubernetes
+
 ```sh
 # Use minikube locally
 (minikube delete || true) &>/dev/null && minikube start --memory 8192 && eval $(minikube docker-env)
