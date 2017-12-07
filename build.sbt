@@ -1,7 +1,7 @@
 import com.typesafe.sbt.packager.docker._
 
 organization in ThisBuild := "less.stupid"
-version in ThisBuild := "1.0-SNAPSHOT"
+version in ThisBuild := "1.0.1-SNAPSHOT"
 
 scalaVersion in ThisBuild := "2.12.2"
 
@@ -10,8 +10,8 @@ EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Java
 lazy val akkaVersion = "2.5.6"
 
 lazy val root = (project in file("."))
-  .settings(name := "flight-booking-akka")
-  .aggregate(`kafka-server`, `cassandra-server`, `flight-booking`)
+  .settings(name := "flight-booking")
+  .aggregate(`kafka-server`, `cassandra-server`, `flight-booking-akka`)
   .settings(commonSettings: _*)
 
 lazy val `kafka-server` = (project in file("kafka-server"))
@@ -37,7 +37,7 @@ lazy val `cassandra-server` = (project in file("cassandra-server"))
   )
 )
 
-lazy val `flight-booking` = (project in file("flight-booking"))
+lazy val `flight-booking-akka` = (project in file("flight-booking"))
 .enablePlugins(JavaAppPackaging)
 .settings(
   mainClass in Compile := Some("com.lightbend.flights.FlightBooking"),

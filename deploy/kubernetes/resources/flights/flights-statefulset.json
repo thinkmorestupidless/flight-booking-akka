@@ -17,7 +17,7 @@
         "containers": [
           {
             "name": "flightsservice",
-            "image": "flight-booking-akka",
+            "image": "thinkmorestupidless/flight-booking-akka",
             "terminationMessagePath": "/tmp/my-log",
             "ports": [
               {
@@ -43,7 +43,7 @@
                 "value": "9000"
               },
               {
-                "name": "FLIGHTSRSERVICE_BIND_IP",
+                "name": "FLIGHTSSERVICE_BIND_IP",
                 "value": "0.0.0.0"
               },
               {
