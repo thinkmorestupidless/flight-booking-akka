@@ -1,7 +1,7 @@
 import com.typesafe.sbt.packager.docker._
 
 organization in ThisBuild := "less.stupid"
-version in ThisBuild := "1.0.1-SNAPSHOT"
+version in ThisBuild := "1.0.3-SNAPSHOT"
 
 scalaVersion in ThisBuild := "2.12.2"
 
@@ -43,6 +43,8 @@ lazy val `flight-booking-akka` = (project in file("flight-booking"))
   mainClass in Compile := Some("com.lightbend.flights.FlightBooking"),
   dockerEntrypoint ++= Seq(
     """-Dcassandra-journal.contact-points.0="$CASSANDRA_SERVICE_NAME"""",
+    """-Dakka.kafka.producer.kafka-clients.bootstrap-servers="kafka-0.broker.kafka.svc.cluster.local:9092"""",
+    """-Dakka.kafka.consumer.kafka-clients.bootstrap-servers="kafka-0.broker.kafka.svc.cluster.local:9092"""",
     """-Dhttp.address="$FLIGHTSSERVICE_BIND_IP"""",
     """-Dhttp.port="$FLIGHTSSERVICE_BIND_PORT"""",
     """-Dakka.actor.provider=cluster""",

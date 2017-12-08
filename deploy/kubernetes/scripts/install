@@ -4,6 +4,7 @@ RESOURCES_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../resources" && pwd)"
 REGISTRY=""
 CONFIGURE_TLS=0
 DEPLOY_CASSANDRA=0
+DEPLOY_KAFKA=0
 BUILD_FLIGHTS=0
 UPLOAD_FLIGHTS=0
 DEPLOY_FLIGHTS=0
@@ -24,7 +25,7 @@ die() {
 (which mvn &>/dev/null) || die '* missing mvn; is it installed?'
 
 if [[ "$#" -eq 0 ]]; then
-    echo "$0 [--minikube] [--new-minikube] [--registry REGISTRY] [--tls] [--cassandra] [--build] [--deploy] [--delete] [--nginx] [--all]" >&1
+    echo "$0 [--minikube] [--new-minikube] [--registry REGISTRY] [--tls] [--cassandra] [--kafka] [--build] [--deploy] [--delete] [--nginx] [--all]" >&1
     exit 1
 fi
 
@@ -52,6 +53,9 @@ while test $# -gt 0; do
             ;;
         --cassandra)
             DEPLOY_CASSANDRA=1
+            ;;
+        --kafka)
+            DEPLOY_KAFKA=1
             ;;
         --build)
             BUILD_FLIGHTS=1
@@ -97,6 +101,7 @@ echo "Registry:          $([ "$REGISTRY" = "" ]        && echo "N/A" || echo "$R
 echo "Minikube:          $([ "$MINIKUBE" = 1 ]         && echo "$([ "$MINIKUBE_RESET" = 1 ] && echo "New" || echo "Yes")" || echo "No")"
 echo "Configure TLS:     $([ "$CONFIGURE_TLS" = 1 ]    && echo "Yes" || echo "No")"
 echo "Deploy Cassandra:  $([ "$DEPLOY_CASSANDRA" = 1 ] && echo "Yes" || echo "No")"
+echo "Deploy Kafka:      $([ "$DEPLOY_KAFKA" = 1 ]     && echo "Yes" || echo "No")"
 echo "Build Flights:     $([ "$BUILD_FLIGHTS" = 1 ]    && echo "Yes" || echo "No")"
 echo "Upload Flights:    $([ "$UPLOAD_FLIGHTS" = 1 ]   && echo "Yes" || echo "No")"
 echo "Delete Flights:    $([ "$DELETE_FLIGHTS" = 1 ]   && echo "Yes" || echo "No")"
@@ -153,6 +158,17 @@ if [ "$DEPLOY_CASSANDRA" = 1 ]; then
     echo '****************************'
 
     kubectl create -f "$RESOURCES_PATH/cassandra"
+    wait-for-pods
+fi
+
+if [ "$DEPLOY_KAFKA" = 1 ]; then
+    echo '****************************'
+    echo '***  Deploying Kafka ***'
+    echo '****************************'
+
+    kubectl create -f "$RESOURCES_PATH/zookeeper"
+    wait-for-pods
+    kubectl create -f "$RESOURCES_PATH/kafka"
     wait-for-pods
 fi
 

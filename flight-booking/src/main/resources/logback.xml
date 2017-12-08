@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <layout class="ch.qos.logback.classic.PatternLayout">
-            <Pattern>
-                %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
-            </Pattern>
-        </layout>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n</pattern>
+        </encoder>
     </appender>
 
-    <logger name="com.lightbend" level="debug"
-            additivity="false">
-        <appender-ref ref="STDOUT" />
-    </logger>
+    <appender name="PAPERTRAIL" class="ch.qos.logback.classic.net.SyslogAppender">
+        <syslogHost>logs6.papertrailapp.com</syslogHost>
+        <port>14268</port>
+        <facility>USER</facility>
+        <suffixPattern>my-app: %logger %msg</suffixPattern>
+    </appender>
 
-    <root level="info">
-        <appender-ref ref="STDOUT" />
-    </root>
-
+    <logger name="org.apache.kafka" level="info" />
     <logger name="com.datastax.driver" level="warn" />
     <logger name="ch.qos.logback" level="warn" />
+
+    <root level="debug">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="PAPERTRAIL" />
+    </root>
 
 </configuration>

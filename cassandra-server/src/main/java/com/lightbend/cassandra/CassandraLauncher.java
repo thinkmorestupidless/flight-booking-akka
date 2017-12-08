@@ -11,6 +11,6 @@ public class CassandraLauncher {
     public static void main(String[] args) throws Exception {
         log.info("starting local Cassandra server");
 
-        EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+        EmbeddedCassandraServerHelper.startEmbeddedCassandra("cassandra.yaml");
     }
 }
